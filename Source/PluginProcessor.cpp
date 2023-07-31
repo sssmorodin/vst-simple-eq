@@ -166,7 +166,9 @@ bool SimpleEQAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleEQAudioProcessor::createEditor()
 {
-    return new SimpleEQAudioProcessorEditor (*this);
+    //return new SimpleEQAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
+
 }
 
 //==============================================================================
@@ -182,6 +184,49 @@ void SimpleEQAudioProcessor::setStateInformation (const void* data, int sizeInBy
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
+
+juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::CreateParameterLayout() {
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("HighPass Freq", 
+                                                           "HighPass Freq",
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           20.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("LowPass Freq", 
+                                                           "LowPass Freq",
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           20000.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Bell Freq", 
+                                                           "Bell Freq",
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           750.f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Bell Gain", 
+                                                           "Bell Gain",
+                                                           juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 
+                                                           0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("Bell Q", 
+                                                           "Bell Q",
+                                                           juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f), 
+                                                           1.0f));
+
+    juce::StringArray filter_slopes;
+    for (size_t i = 0; i < 4; ++i) {
+        juce::String str;
+        str << (12 + 12 * i);
+        str << "dB/oct";
+        filter_slopes.add(str);
+    }
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>("HP Slope", "HP Slope", filter_slopes, 0));
+    layout.add(std::make_unique<juce::AudioParameterChoice>("LP Slope", "LP Slope", filter_slopes, 0));
+
+    return layout;
+}
+
 
 //==============================================================================
 // This creates new instances of the plugin..
