@@ -93,8 +93,14 @@ void SimpleEQAudioProcessor::changeProgramName (int index, const juce::String& n
 //==============================================================================
 void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    juce::dsp::ProcessSpec spec;
+
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = 1;
+    spec.sampleRate = sampleRate;
+
+    left_chain.prepare(spec);
+    right_chain.prepare(spec);
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -143,19 +149,18 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    juce::dsp::AudioBlock<float> audio_block(buffer);
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    auto left_channel  = audio_block.getSingleChannelBlock(0);
+    auto right_channel = audio_block.getSingleChannelBlock(1);
 
-        // ..do something to the data...
-    }
+    juce::dsp::ProcessContextReplacing<float> left_context(left_channel);
+    juce::dsp::ProcessContextReplacing<float> right_context(right_channel);
+
+    left_chain.process(left_context);
+    right_chain.process(right_context);
+    
 }
 
 //==============================================================================
