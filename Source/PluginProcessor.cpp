@@ -111,6 +111,84 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     *left_chain.get<ChainPositions::Bell>().coefficients  = *bell_coefficients;
     *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
 
+    auto cut_coefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chain_settings.hp_freq,
+                                                                                                        sampleRate,
+                                                                                                        2 * (chain_settings.hp_slope + 1));
+    auto& left_high_pass = left_chain.get<ChainPositions::HighPass>();
+
+    left_high_pass.setBypassed<0>(true);
+    left_high_pass.setBypassed<1>(true);
+    left_high_pass.setBypassed<2>(true);
+    left_high_pass.setBypassed<3>(true);
+
+    switch (chain_settings.hp_slope) {
+        case slope_12:
+            *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+            left_high_pass.setBypassed<0>(false);
+            break;
+        case slope_24:
+            *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+            left_high_pass.setBypassed<0>(false);
+            *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+            left_high_pass.setBypassed<1>(false);
+            break;
+        case slope_36:
+            *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+            left_high_pass.setBypassed<0>(false);
+            *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+            left_high_pass.setBypassed<1>(false);
+            *left_high_pass.get<2>().coefficients = *cut_coefficients[2];
+            left_high_pass.setBypassed<2>(false);
+            break;
+        case slope_48:
+            *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+            left_high_pass.setBypassed<0>(false);
+            *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+            left_high_pass.setBypassed<1>(false);
+            *left_high_pass.get<2>().coefficients = *cut_coefficients[2];
+            left_high_pass.setBypassed<2>(false);
+            *left_high_pass.get<3>().coefficients = *cut_coefficients[3];
+            left_high_pass.setBypassed<3>(false);
+            break;
+    }
+
+    auto& right_high_pass = right_chain.get<ChainPositions::HighPass>();
+
+    right_high_pass.setBypassed<0>(true);
+    right_high_pass.setBypassed<1>(true);
+    right_high_pass.setBypassed<2>(true);
+    right_high_pass.setBypassed<3>(true);
+
+    switch (chain_settings.hp_slope) {
+    case slope_12:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        break;
+    case slope_24:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        break;
+    case slope_36:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        *right_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        right_high_pass.setBypassed<2>(false);
+        break;
+    case slope_48:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        *right_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        right_high_pass.setBypassed<2>(false);
+        *right_high_pass.get<3>().coefficients = *cut_coefficients[3];
+        right_high_pass.setBypassed<3>(false);
+        break;
+    }
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -170,6 +248,85 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     *left_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
     *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
 
+    auto cut_coefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chain_settings.hp_freq,
+                                                                                                        getSampleRate(),
+                                                                                                        2 * (chain_settings.hp_slope + 1));
+    auto& left_high_pass = left_chain.get<ChainPositions::HighPass>();
+
+    left_high_pass.setBypassed<0>(true);
+    left_high_pass.setBypassed<1>(true);
+    left_high_pass.setBypassed<2>(true);
+    left_high_pass.setBypassed<3>(true);
+
+    switch (chain_settings.hp_slope) {
+    case slope_12:
+        *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        left_high_pass.setBypassed<0>(false);
+        break;
+    case slope_24:
+        *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        left_high_pass.setBypassed<0>(false);
+        *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        left_high_pass.setBypassed<1>(false);
+        break;
+    case slope_36:
+        *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        left_high_pass.setBypassed<0>(false);
+        *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        left_high_pass.setBypassed<1>(false);
+        *left_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        left_high_pass.setBypassed<2>(false);
+        break;
+    case slope_48:
+        *left_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        left_high_pass.setBypassed<0>(false);
+        *left_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        left_high_pass.setBypassed<1>(false);
+        *left_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        left_high_pass.setBypassed<2>(false);
+        *left_high_pass.get<3>().coefficients = *cut_coefficients[3];
+        left_high_pass.setBypassed<3>(false);
+        break;
+    }
+
+    auto& right_high_pass = right_chain.get<ChainPositions::HighPass>();
+
+    right_high_pass.setBypassed<0>(true);
+    right_high_pass.setBypassed<1>(true);
+    right_high_pass.setBypassed<2>(true);
+    right_high_pass.setBypassed<3>(true);
+
+    switch (chain_settings.hp_slope) {
+    case slope_12:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        break;
+    case slope_24:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        break;
+    case slope_36:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        *right_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        right_high_pass.setBypassed<2>(false);
+        break;
+    case slope_48:
+        *right_high_pass.get<0>().coefficients = *cut_coefficients[0];
+        right_high_pass.setBypassed<0>(false);
+        *right_high_pass.get<1>().coefficients = *cut_coefficients[1];
+        right_high_pass.setBypassed<1>(false);
+        *right_high_pass.get<2>().coefficients = *cut_coefficients[2];
+        right_high_pass.setBypassed<2>(false);
+        *right_high_pass.get<3>().coefficients = *cut_coefficients[3];
+        right_high_pass.setBypassed<3>(false);
+        break;
+    }
+
     juce::dsp::AudioBlock<float> audio_block(buffer);
 
     // --
@@ -222,8 +379,8 @@ ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvst) {
     chain_settings.bell_freq = apvst.getRawParameterValue("Bell Freq")->load();
     chain_settings.bell_gain_in_db = apvst.getRawParameterValue("Bell Gain")->load();
     chain_settings.bell_q = apvst.getRawParameterValue("Bell Q")->load();
-    chain_settings.hp_slope = apvst.getRawParameterValue("HP Slope")->load();
-    chain_settings.lp_slope = apvst.getRawParameterValue("LP Slope")->load();
+    chain_settings.hp_slope = static_cast<Slope>(apvst.getRawParameterValue("HP Slope")->load());
+    chain_settings.lp_slope = static_cast<Slope>(apvst.getRawParameterValue("LP Slope")->load());
 
     return chain_settings;
 }
