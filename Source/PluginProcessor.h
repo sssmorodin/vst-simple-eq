@@ -10,6 +10,14 @@
 
 #include <JuceHeader.h>
 
+struct ChainSettings {
+    float bell_freq{0}, bell_gain_in_db{0}, bell_q{1.f};
+    float lp_freq{ 0 }, hp_freq{ 0 };
+    int   lp_slope{ 0 }, hp_slope{ 0 };
+};
+
+ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvst);
+
 //==============================================================================
 /**
 */
@@ -67,6 +75,12 @@ private:
     using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
 
     MonoChain left_chain, right_chain;
+
+    enum ChainPositions {
+        HighPass,
+        Bell,
+        LowPass
+    };
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)

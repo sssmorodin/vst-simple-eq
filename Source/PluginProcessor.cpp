@@ -101,6 +101,16 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 
     left_chain.prepare(spec);
     right_chain.prepare(spec);
+
+    ChainSettings chain_settings = GetChainSettings(apvst);
+
+    auto bell_coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 
+                                                                                 chain_settings.bell_freq, 
+                                                                                 chain_settings.bell_q,
+                                                                                 juce::Decibels::decibelsToGain(chain_settings.bell_gain_in_db));
+    *left_chain.get<ChainPositions::Bell>().coefficients  = *bell_coefficients;
+    *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
+
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -150,7 +160,19 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    // Refactor this 
+    ChainSettings chain_settings = GetChainSettings(apvst);
+
+    auto bell_coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+                                                                                 chain_settings.bell_freq,
+                                                                                 chain_settings.bell_q,
+                                                                                 juce::Decibels::decibelsToGain(chain_settings.bell_gain_in_db));
+    *left_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
+    *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
+
     juce::dsp::AudioBlock<float> audio_block(buffer);
+
+    // --
 
     auto left_channel  = audio_block.getSingleChannelBlock(0);
     auto right_channel = audio_block.getSingleChannelBlock(1);
@@ -160,6 +182,8 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
     left_chain.process(left_context);
     right_chain.process(right_context);
+
+
     
 }
 
@@ -190,22 +214,36 @@ void SimpleEQAudioProcessor::setStateInformation (const void* data, int sizeInBy
     // whose contents will have been created by the getStateInformation() call.
 }
 
+ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvst) {
+    ChainSettings chain_settings;
+
+    chain_settings.lp_freq = apvst.getRawParameterValue("LowPass Freq")->load();
+    chain_settings.hp_freq = apvst.getRawParameterValue("HighPass Freq")->load();
+    chain_settings.bell_freq = apvst.getRawParameterValue("Bell Freq")->load();
+    chain_settings.bell_gain_in_db = apvst.getRawParameterValue("Bell Gain")->load();
+    chain_settings.bell_q = apvst.getRawParameterValue("Bell Q")->load();
+    chain_settings.hp_slope = apvst.getRawParameterValue("HP Slope")->load();
+    chain_settings.lp_slope = apvst.getRawParameterValue("LP Slope")->load();
+
+    return chain_settings;
+}
+
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::CreateParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("HighPass Freq", 
                                                            "HighPass Freq",
-                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 
                                                            20.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("LowPass Freq", 
                                                            "LowPass Freq",
-                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 
                                                            20000.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Bell Freq", 
                                                            "Bell Freq",
-                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f), 
+                                                           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f), 
                                                            750.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("Bell Gain", 
