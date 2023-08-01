@@ -89,6 +89,9 @@ private:
         LowPass
     };
 
+    void UpdateBellFilter(const ChainSettings& chain_settings);
+    void UpdateCoefficients(Filter::CoefficientsPtr& old_coef, const Filter::CoefficientsPtr& new_coefs);
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
 };

@@ -104,12 +104,7 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 
     ChainSettings chain_settings = GetChainSettings(apvst);
 
-    auto bell_coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 
-                                                                                 chain_settings.bell_freq, 
-                                                                                 chain_settings.bell_q,
-                                                                                 juce::Decibels::decibelsToGain(chain_settings.bell_gain_in_db));
-    *left_chain.get<ChainPositions::Bell>().coefficients  = *bell_coefficients;
-    *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
+    UpdateBellFilter(chain_settings);
 
     auto cut_coefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chain_settings.hp_freq,
                                                                                                         sampleRate,
@@ -241,12 +236,7 @@ void SimpleEQAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
     // Refactor this 
     ChainSettings chain_settings = GetChainSettings(apvst);
 
-    auto bell_coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
-                                                                                 chain_settings.bell_freq,
-                                                                                 chain_settings.bell_q,
-                                                                                 juce::Decibels::decibelsToGain(chain_settings.bell_gain_in_db));
-    *left_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
-    *right_chain.get<ChainPositions::Bell>().coefficients = *bell_coefficients;
+    UpdateBellFilter(chain_settings);
 
     auto cut_coefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chain_settings.hp_freq,
                                                                                                         getSampleRate(),
@@ -384,6 +374,21 @@ ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvst) {
 
     return chain_settings;
 }
+
+void SimpleEQAudioProcessor::UpdateBellFilter(const ChainSettings& chain_settings) {
+    auto bell_coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(getSampleRate(),
+                                                                                 chain_settings.bell_freq,
+                                                                                 chain_settings.bell_q,
+                                                                                 juce::Decibels::decibelsToGain(chain_settings.bell_gain_in_db));
+
+    UpdateCoefficients(left_chain.get<ChainPositions::Bell>().coefficients, bell_coefficients);
+    UpdateCoefficients(right_chain.get<ChainPositions::Bell>().coefficients, bell_coefficients);
+}
+
+void SimpleEQAudioProcessor::UpdateCoefficients(Filter::CoefficientsPtr& old_coefs, const Filter::CoefficientsPtr& new_coefs) {
+    *old_coefs = *new_coefs;
+}
+
 
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::CreateParameterLayout() {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
