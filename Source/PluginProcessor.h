@@ -23,7 +23,7 @@ struct ChainSettings {
     int   lp_slope{ Slope::slope_12 }, hp_slope{ Slope::slope_12 };
 };
 
-ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvst);
+ChainSettings GetChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
 //==============================================================================
 /**
@@ -72,7 +72,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     static juce::AudioProcessorValueTreeState::ParameterLayout CreateParameterLayout();
-    juce::AudioProcessorValueTreeState apvst { *this, nullptr, "Parameters", CreateParameterLayout() };
+    juce::AudioProcessorValueTreeState apvts { *this, nullptr, "Parameters", CreateParameterLayout() };
 
 private:
     using Filter = juce::dsp::IIR::Filter<float>;
@@ -91,6 +91,47 @@ private:
 
     void UpdateBellFilter(const ChainSettings& chain_settings);
     void UpdateCoefficients(Filter::CoefficientsPtr& old_coef, const Filter::CoefficientsPtr& new_coefs);
+
+    template <int Index, typename ChainType, typename CoefficientType>
+    void Update(ChainType& chain, const CoefficientType& coefficients) {
+        UpdateCoefficients(chain.get<Index>().coefficients, coefficients[Index]);
+        chain.setBypassed<Index>(false);
+    }
+
+    template <typename ChainType, typename CoefficientType>
+    void UpdatePassFilter(ChainType& left_high_pass, 
+                          const CoefficientType& cut_coefficients,
+                          const Slope& slope) {
+
+        left_high_pass.setBypassed<0>(true);
+        left_high_pass.setBypassed<1>(true);
+        left_high_pass.setBypassed<2>(true);
+        left_high_pass.setBypassed<3>(true);
+
+        switch (slope) {
+            case slope_48:
+            {
+                Update<3>(left_high_pass, cut_coefficients);
+            }
+            case slope_36:
+            {
+                Update<2>(left_high_pass, cut_coefficients);
+            }
+            case slope_24:
+            {
+                Update<1>(left_high_pass, cut_coefficients);
+            }
+            case slope_12:
+            {
+                Update<0>(left_high_pass, cut_coefficients);
+            }
+        }
+    }
+
+    void UpdateHighpassFilter(const ChainSettings& chain_settings);
+    void UpdateLowpassFilter(const ChainSettings& chain_settings);
+
+    void UpdateFilters();
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
