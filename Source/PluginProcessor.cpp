@@ -106,25 +106,6 @@ void SimpleEQAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 
     UpdateFilters();
 
-    /*UpdateBellFilter(chain_settings);
-
-    auto cut_coefficients = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chain_settings.hp_freq,
-                                                                                                        sampleRate,
-                                                                                                        2 * (chain_settings.hp_slope + 1));
-    auto& left_high_pass = left_chain.get<ChainPositions::HighPass>();
-    auto& right_high_pass = right_chain.get<ChainPositions::HighPass>();
-
-    SimpleEQAudioProcessor::UpdatePassFilter(left_high_pass, cut_coefficients, static_cast<Slope>(chain_settings.hp_slope));
-    SimpleEQAudioProcessor::UpdatePassFilter(right_high_pass, cut_coefficients, static_cast<Slope>(chain_settings.hp_slope));
-
-    auto low_pass_coefficients = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chain_settings.lp_freq,
-                                                                                                             sampleRate,
-                                                                                                             2 * (chain_settings.lp_slope + 1));
-    auto& left_low_pass = left_chain.get<ChainPositions::LowPass>();
-    auto& right_low_pass = right_chain.get<ChainPositions::LowPass>();
-
-    SimpleEQAudioProcessor::UpdatePassFilter(left_low_pass, low_pass_coefficients, static_cast<Slope>(chain_settings.lp_slope));
-    SimpleEQAudioProcessor::UpdatePassFilter(right_low_pass, low_pass_coefficients, static_cast<Slope>(chain_settings.lp_slope));*/
 }
 
 void SimpleEQAudioProcessor::releaseResources()
